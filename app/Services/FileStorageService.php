@@ -20,6 +20,7 @@ class FileStorageService extends Facade implements FileStorageServiceContract
 
        $filePath = 'public/' . static::randomName() . '.' . $file->getClienOriginalExtansion();
         Storage::put($filePath, File::get($file));
+        Storage::setVisibility($filePath, 'public');
 
         return $filePath;
     }

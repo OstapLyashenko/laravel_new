@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\HomeController;
 use App\Jobs\OrderCreatedNotificationJob;
+use App\Services\AwsPublicLinkService;
 use App\Services\ImagesService;
 use Illuminate\Support\Facades\Route;
 
@@ -16,9 +17,21 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+Route::get('invoice', function () {
+    $order = \App\Models\Order::all()->last();
+    $service = new \App\Services\InvoicesService();
+    $invoice = $service->generate($order);
+
+    $test = $invoice->save('s3');
+    dd(AwsPublicLinkService::generate($test->filename));
+});
 Route::get('send', function () {
     $order = \App\Models\Order::all()->random();
     OrderCreatedNotificationJob::dispatch($order)->onQueue('emails');
+});
+Route::get('test', function () {
+    $product = \App\Models\Product::find(1);
+    dd(\Illuminate\Support\Facades\Cache::get("products.thumbnail.{$product->thumbnail}"));
 });
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -62,6 +75,9 @@ Route::middleware('auth')->group(function () {
     Route::delete('wishlist/{product}/delete', [\App\Http\Controllers\WishListController::class, 'delete'])->name('wishlist.delete');
     Route::get('checkout', \App\Http\Controllers\CheckoutController::class)->name('checkout');
     Route::post('order', \App\Http\Controllers\OrdersController::class)->name('order.create');
+
+    Route::get('/order/{order}/invoice', \App\Http\Controllers\Invoices\DownloadInvoiceController::class)
+        ->name('orders.generate.invoice');
 
     Route::name('account.')->prefix('account')->group(function () {
         Route::get('/', [\App\Http\Controllers\Account\UsersController::class, 'index'])->name('index');
