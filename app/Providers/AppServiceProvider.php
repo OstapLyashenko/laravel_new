@@ -2,11 +2,12 @@
 
 namespace App\Providers;
 
-use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Repositories\Contracts\OrderRepositoryContract;
 use App\Repositories\Contracts\ProductRepositoryContract;
 use App\Repositories\OrderRepository;
 use App\Repositories\ProductRepository;
+use App\Services\Contracts\InvoicesServiceContract;
+use App\Services\InvoicesService;
 use Database\Factories\UserFactory;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\ServiceProvider;
@@ -23,6 +24,10 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             OrderRepositoryContract::class,
             OrderRepository::class
+        );
+        $this->app->bind(
+            InvoicesServiceContract::class,
+            InvoicesService::class
         );
     }
 

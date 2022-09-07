@@ -53,7 +53,6 @@ class PaypalPaymentController extends Controller
             DB::beginTransaction();
 
             $result = $this->payPalClient->capturePaymentOrder($orderId);
-
             $order = $orderRepository->setTransaction($orderId, new TransactionDataAdapter(
                 self::PAYMENT_SYSTEM,
                 auth()->id(),
@@ -65,7 +64,8 @@ class PaypalPaymentController extends Controller
 
             DB::commit();
 
-            return response()->json($result);
+            //return response()->json($result);
+            return response()->json(['error' => "Some error here"], 422);
         } catch (\Exception $exception) {
             DB::rollBack();
             logs()->warning($exception);
