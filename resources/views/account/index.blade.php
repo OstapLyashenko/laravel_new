@@ -9,9 +9,9 @@
                 <h3 class="text-center">{{ __('My Account ('. $user->name .' ' . $user->surname. ')') }}</h3>
                 <br>
             </div>
-            {{--            @empty($user->telegram_id)--}}
-            {{--                @include('account.parts.telegram')--}}
-            {{--            @endempty--}}
+            @empty($user->telegram_id)
+                @include('account.parts.telegram')
+            @endempty
             <div class="col-md-12">
                 <div class="album py-5 bg-light">
                     <div class="container">
@@ -20,8 +20,9 @@
                                 <table class="table align-self-center">
                                     <thead>
                                     <tr>
-                                        <th class="text-center" scope="col"> Name </th>
-                                        <th class="text-center" scope="col"> Value <th>
+                                        <th class="text-center" scope="col"> Name</th>
+                                        <th class="text-center" scope="col"> Value
+                                        <th>
                                     </tr>
                                     </thead>
                                     <tbody>
@@ -49,10 +50,10 @@
                                         <td scope="row" class="text-center">{{__('Balance')}}</td>
                                         <td class="text-center"> {{ $user->balance }} </td>
                                     </tr>
-                                    {{--                                    <tr>--}}
-                                    {{--                                        <td scope="row" class="text-center">{{__('Telegram ID')}}</td>--}}
-                                    {{--                                        <td class="text-center"> {{ $user->telegram_id }} </td>--}}
-                                    {{--                                    </tr>--}}
+                                    <tr>
+                                        <td scope="row" class="text-center">{{__('Telegram ID')}}</td>
+                                        <td class="text-center"> {{ $user->telegram_id }} </td>
+                                    </tr>
                                     </tbody>
                                 </table>
                             </div>

@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\HomeController;
+use App\Jobs\OrderCreatedNotificationJob;
+use App\Services\ImagesService;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -14,8 +16,12 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('send', function () {
+    $order = \App\Models\Order::all()->random();
+    OrderCreatedNotificationJob::dispatch($order)->onQueue('emails');
+});
 
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::delete(
     'ajax/images/{image}',
@@ -42,26 +48,34 @@ Route::name('admin.')->prefix('admin')->middleware(['auth', 'admin'])->group(fun
     })->name('dashboard');
 
     Route::resource('products', \App\Http\Controllers\Admin\ProductsController::class)->except(['show']);
+
+    Route::name('orders')->group(function () {
+        Route::get('orders', [\App\Http\Controllers\Admin\OrdersController::class, 'index'])->name('.index');
+        Route::get('orders/{order}/edit', [\App\Http\Controllers\Admin\OrdersController::class, 'edit'])->name('.edit');
+        Route::put('orders/{order}', [\App\Http\Controllers\Admin\OrdersController::class, 'update'])->name('.update');
+    });
 });
 
 Route::middleware('auth')->group(function () {
     Route::post('product/{product}/rating/add', [\App\Http\Controllers\ProductsController::class, 'addRating'])->name('product.rating.add');
-});
-Route::get('wishlist/{product}/add', [\App\Http\Controllers\WishListController::class, 'add'])->name('wishlist.add');
-Route::delete('wishlist/{product}/delete', [\App\Http\Controllers\WishListController::class, 'delete'])->name('wishlist.delete');
-Route::get('checkout', \App\Http\Controllers\CheckoutController::class)->name('checkout');
-Route::post('order', \App\Http\Controllers\OrdersController::class)->name('order.create');
+    Route::get('wishlist/{product}/add', [\App\Http\Controllers\WishListController::class, 'add'])->name('wishlist.add');
+    Route::delete('wishlist/{product}/delete', [\App\Http\Controllers\WishListController::class, 'delete'])->name('wishlist.delete');
+    Route::get('checkout', \App\Http\Controllers\CheckoutController::class)->name('checkout');
+    Route::post('order', \App\Http\Controllers\OrdersController::class)->name('order.create');
 
-Route::name('account.')->prefix('account')->group(callback: function () {
-    Route::get('/', [\App\Http\Controllers\Account\UsersController::class, 'index'])->name('index');
-    Route::get('{user}/edit', [\App\Http\Controllers\Account\UsersController::class, 'edit'])
-        ->name('edit')
-        ->middleware('can:view,user');
-    Route::put('{user}', [\App\Http\Controllers\Account\UsersController::class, 'update'])
-        ->name('update')
-        ->middleware('can:update,user');
-    Route::get('wishlist', \App\Http\Controllers\Account\WishListController::class)->name('wishlist');
+    Route::name('account.')->prefix('account')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Account\UsersController::class, 'index'])->name('index');
+        Route::get('{user}/edit', [\App\Http\Controllers\Account\UsersController::class, 'edit'])
+            ->name('edit')
+            ->middleware('can:view,user');
+        Route::put('{user}', [\App\Http\Controllers\Account\UsersController::class, 'update'])
+            ->name('update')
+            ->middleware('can:update,user');
+        Route::get('wishlist', \App\Http\Controllers\Account\WishListController::class)->name('wishlist');
+        Route::get('telegram/callback', \App\Http\Controllers\TelegramCallbackController::class)->name('telegram.callback');
+    });
 });
+
 Route::prefix('paypal')->group(function () {
     Route::post('order/create', [\App\Http\Controllers\Payments\PaypalPaymentController::class, 'create']);
     Route::post('order/{orderId}/capture', [\App\Http\Controllers\Payments\PaypalPaymentController::class, 'capture']);
